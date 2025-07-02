@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useAccount } from 'wagmi';
+import { useAccount, usePublicClient, useWalletClient, useSendTransaction, useChainId, useSwitchChain } from 'wagmi';
+import { createCoin } from '@zoralabs/coins-sdk';
+import { baseSepolia } from 'wagmi/chains';
 
 export default function CreateMeme() {
   const [name, setName] = useState('');
@@ -10,6 +12,28 @@ export default function CreateMeme() {
   const [image, setImage] = useState<File | null>(null);
   const [message, setMessage] = useState('');
   const { address, isConnected } = useAccount();
+  const publicClient = usePublicClient();
+  const { data: walletClient } = useWalletClient();
+  const { sendTransaction } = useSendTransaction();
+  const chainId = useChainId();
+  const { switchChain } = useSwitchChain();
+
+  if (isConnected && chainId !== baseSepolia.id) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <p className="mb-4 text-center">
+          You are connected to an unsupported network. Please switch to the Base Sepolia network to create a meme.
+          If Base Sepolia is not in your wallet, clicking the button below will prompt you to add it.
+        </p>
+        <button
+          onClick={() => switchChain({ chainId: baseSepolia.id })}
+          className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+        >
+          Switch to Base Sepolia
+        </button>
+      </div>
+    );
+  }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -24,18 +48,30 @@ export default function CreateMeme() {
       return;
     }
 
-    if (!isConnected || !address) {
+    if (!isConnected || !address || !walletClient) {
       setMessage('Please connect your wallet to create a meme.');
       return;
     }
 
-    const reader = new FileReader();
-    reader.readAsDataURL(image);
-    reader.onloadend = async () => {
-      const base64Image = reader.result as string;
+    console.log('Public Client:', publicClient);
+    console.log('Wallet Client:', walletClient);
+    console.log('Current Chain ID:', chainId);
+    console.log('Public Client Chain ID:', publicClient?.chain?.id);
+    console.log('Wallet Client Chain ID:', walletClient?.chain?.id);
 
-      try {
-        const response = await fetch('/api/create-meme', {
+    if (publicClient?.chain?.id !== baseSepolia.id || walletClient?.chain?.id !== baseSepolia.id) {
+      setMessage('Wallet or Public Client is not connected to Base Sepolia. Please switch networks.');
+      return;
+    }
+
+    try {
+      // 1. Save the meme to the database to get the image URL
+      const reader = new FileReader();
+      reader.readAsDataURL(image);
+      reader.onloadend = async () => {
+        const base64Image = reader.result as string;
+
+        const memeResponse = await fetch('/api/create-meme', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -43,20 +79,45 @@ export default function CreateMeme() {
           body: JSON.stringify({ name, symbol, imageUrl: base64Image, creatorAddress: address }),
         });
 
-        const data = await response.json();
-        if (response.ok) {
-          setMessage(`Meme created successfully: ${data.message}`);
-          setName('');
-          setSymbol('');
-          setImage(null);
-        } else {
-          setMessage(`Error: ${data.error}`);
+        const memeData = await memeResponse.json();
+        if (!memeResponse.ok) {
+          setMessage(`Error: ${memeData.error}`);
+          return;
         }
-      } catch (error) {
-        console.error('Failed to create meme:', error);
-        setMessage('Failed to create meme. Please try again.');
-      }
-    };
+
+        const imageUrl = memeData.meme.image_url; // Assuming the API returns the image_url
+
+        // 2. Create the coin on-chain
+        const { hash, receipt, address: coinAddress, deployment } = await createCoin(
+          {
+            name,
+            symbol,
+            account: address,
+            uri: imageUrl, // Pass the image URL as the metadata URI
+          },
+          walletClient,
+          publicClient,
+          {
+            account: address,
+          }
+        );
+
+        console.log('createCoin Response:', { hash, receipt, coinAddress, deployment });
+
+        console.log('Transaction Hash:', hash);
+        console.log('Coin Address:', coinAddress);
+        console.log('Deployment Info:', deployment);
+
+        setMessage(`Meme created successfully: ${memeData.message}`);
+        setName('');
+        setSymbol('');
+        setImage(null);
+      };
+    } catch (error) {
+      console.error('Failed to create meme:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      setMessage(`Failed to create meme: ${errorMessage}`);
+    }
   };
 
   return (
