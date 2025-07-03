@@ -9,20 +9,20 @@ import {
   mainnet,
   optimism,
   polygon,
-  sepolia,
+  baseSepolia,
 } from 'wagmi/chains';
 import { getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 
 const config = getDefaultConfig({
   appName: 'amicoinornot',
-  projectId: 'YOUR_PROJECT_ID', // Replace with your actual project ID
+  projectId: 'e5b6023f239ab1391e2e4ffe1690646d', // Replace with your actual project ID
   chains: [
     mainnet,
     polygon,
     optimism,
     arbitrum,
     base,
-    sepolia,
+    baseSepolia,
   ],
   ssr: true,
 });

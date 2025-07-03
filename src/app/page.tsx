@@ -9,6 +9,7 @@ interface Meme {
   id: string;
   name: string;
   imageUrl: string;
+  votes: number;
 }
 
 export default function Home() {
@@ -93,6 +94,7 @@ export default function Home() {
             >
                             {meme.imageUrl && <Image src={meme.imageUrl} alt={meme.name} width={300} height={300} objectFit="contain" />}
               <p className="mt-2">{meme.name}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Votes: {meme.votes}</p>
             </div>
           ))}
         </div>

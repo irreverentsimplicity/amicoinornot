@@ -5,7 +5,7 @@ export async function GET(req: NextRequest) {
   try {
     const { data: memes, error } = await supabase
       .from('memes')
-      .select('id, name, image_url');
+      .select('id, name, image_url, votes:votes(count)');
 
     if (error) {
       console.error('Supabase fetch error:', error);
@@ -31,6 +31,7 @@ export async function GET(req: NextRequest) {
       id: meme.id,
       name: meme.name,
       imageUrl: meme.image_url,
+      votes: meme.votes[0]?.count || 0,
     }));
 
     return NextResponse.json({ memes: formattedMemes });
