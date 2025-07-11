@@ -1,10 +1,12 @@
-# AmICoinOrNot
+# AmICoinOrNot for Zora Coinathon
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+**AmICoinOrNot** is a decentralized application (dApp) that allows users to create and manage "meme coins" on a layer 2 EVM-compatible chain, using Zora Coin SDK. In the proposed dApp, users can mint new tokens, associate them with an image, and participate in a voting or leaderboard system. 
 
-## Project Description
+The UX mimics the popular AmIHotOrNot layout in which 2 images are side by side, and users can vote which one will remain, or be the "winner". Then another image is added to the UI and the process restarts. Images are stored off-chain in a supabase database, for speed and efficiency. Voting is also stored off-chain, in the same database.
 
-**AmICoinOrNot** is a decentralized application (dApp) that allows users to create and manage "meme coins" on the Base Sepolia testnet. Users can mint new tokens, associate them with an image, and potentially participate in a voting or leaderboard system. The primary goal is to explore and demonstrate the process of deploying custom tokens on a Layer 2 blockchain like Base.
+Once per day, the votes are calculated, and a smart contract (not included in the repo, not enough time to finish) will distribute rewards to the voters of the meme with the highest number of votes.
+
+The primary goal is to explore and demonstrate possibilities of the Zora Coin framework, not to create a functional dApp (again, not enough time for it).
 
 ## How to Run
 
@@ -28,27 +30,4 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
